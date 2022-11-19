@@ -1,4 +1,4 @@
-package authentication
+package go_authentication
 
 import (
 	"errors"

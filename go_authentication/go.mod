@@ -1,4 +1,4 @@
-module github.com/waterproofpatch/go_authentication
+module go_authentication
 
 go 1.18
 
