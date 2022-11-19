@@ -9,7 +9,7 @@ import (
 
 var gDb *gorm.DB
 
-func ResetDb(dropTables bool) {
+func resetDb(dropTables bool) {
 	log.Printf("Resetting db...")
 	db := GetDb()
 
@@ -21,7 +21,14 @@ func ResetDb(dropTables bool) {
 	db.AutoMigrate(&User{})
 }
 
-func InitDb(dbUrl string, dropTables string) {
+// getDb returns the database object
+func GetDb() *gorm.DB {
+	if gDb == nil {
+		panic("gDb is not initialized!")
+	}
+	return gDb
+}
+func InitDb(dbUrl string, dropTables bool) {
 	database, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -29,13 +36,5 @@ func InitDb(dbUrl string, dropTables string) {
 
 	// Read
 	gDb = database
-	ResetDb(dropTables == "true")
-}
-
-// getDb returns the database object
-func GetDb() *gorm.DB {
-	if gDb == nil {
-		panic("gDb is not initialized!")
-	}
-	return gDb
+	resetDb(dropTables == true)
 }
