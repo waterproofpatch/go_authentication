@@ -1,7 +1,6 @@
 package go_authentication
 
 type Config struct {
-	Port             string
 	DefaultAdminUser string
 	DefaultAdminPass string
 	Secret           string
