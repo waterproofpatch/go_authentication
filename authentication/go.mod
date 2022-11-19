@@ -1,4 +1,4 @@
-module example.com/authentication
+module github.com/waterproofpatch/go_authentication
 
 go 1.18
 
