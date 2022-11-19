@@ -11,8 +11,3 @@ type User struct {
 	VerificationCode string `json:"verificationCode"`
 	RegistrationDate string `json:"registrationDate"`
 }
-type Item struct {
-	gorm.Model
-	UserID int    `json:"userId"`
-	Name   string `json:"name"`
-}

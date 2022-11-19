@@ -8,14 +8,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+func WriteError(w http.ResponseWriter, message string, status int) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(&Error{ErrorMessage: message})
 }
 
 func getUserByEmail(email string) (*User, error) {

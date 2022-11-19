@@ -17,10 +17,8 @@ func ResetDb(dropTables bool) {
 	if dropTables {
 		log.Printf("Dropping tables...")
 		db.Migrator().DropTable(&User{})
-		db.Migrator().DropTable(&Item{})
 	}
 	db.AutoMigrate(&User{})
-	db.AutoMigrate(&Item{})
 }
 
 func InitDb(dbUrl string, dropTables string) {

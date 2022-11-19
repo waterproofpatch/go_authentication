@@ -13,18 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type JWTData struct {
-	// Standard claims are the standard jwt claims from the IETF standard
-	// https://tools.ietf.org/html/rfc7519
-	jwt.StandardClaims
-	Email      string `json:"email"`
-	IsAdmin    bool   `json:"IsAdmin"`
-	IsVerified bool   `json:"isVerified"`
-	FirstName  string `json:"firstName"`
-	LastName   string `json:"lastName"`
-	Phone      string `json:"phone"`
-}
-
 // Hash password
 func HashPassword(password string) (string, error) {
 	// Convert password string to byte slice
@@ -35,11 +23,13 @@ func HashPassword(password string) (string, error) {
 	return string(hashedPasswordBytes), err
 }
 
+// check if email is valid.
 func IsValidEmail(email string) bool {
 	_, err := mail.ParseAddress(email)
 	return err == nil
 }
 
+// create a new user in a database.
 func CreateUser(email string, hashedPassword string, isVerified bool, isAdmin bool, verificationCode string) (*User, error) {
 	db := GetDb()
 	var user = User{
