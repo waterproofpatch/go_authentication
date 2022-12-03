@@ -20,6 +20,6 @@ func GetConfig() *Config {
 
 func InitConfig(secret string, defaultAdminUser string, defaultAdminPassword string) {
 	GetConfig().Secret = secret
-	GetConfig().DefaultAdminPass = defaultAdminPassword
 	GetConfig().DefaultAdminUser = defaultAdminUser
+	GetConfig().DefaultAdminPass = defaultAdminPassword
 }
