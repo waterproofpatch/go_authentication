@@ -9,6 +9,7 @@ import (
 
 var gDb *gorm.DB
 
+// initialize the database, conditionally dropping tables
 func resetDb(dropTables bool) {
 	log.Printf("Resetting db...")
 	db := GetDb()
