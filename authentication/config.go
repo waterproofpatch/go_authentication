@@ -1,4 +1,4 @@
-package go_authentication
+package authentication
 
 type Config struct {
 	DefaultAdminUser string
