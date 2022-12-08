@@ -20,7 +20,11 @@ func resetDb(dropTables bool) {
 		db.Migrator().DropTable(&User{})
 	}
 	db.AutoMigrate(&User{})
-	db.Create(&User{Email: GetConfig().DefaultAdminUser, Password: GetConfig().DefaultAdminPass, IsVerified: true, IsAdmin: true, VerificationCode: "", RegistrationDate: ""})
+	hashedPassword, err := HashPassword(GetConfig().DefaultAdminPass)
+	if err != nil {
+		panic(err)
+	}
+	CreateUser(GetConfig().DefaultAdminUser, hashedPassword, true, true, "")
 }
 
 // getDb returns the database object
