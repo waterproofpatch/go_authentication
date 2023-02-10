@@ -40,6 +40,8 @@ func CreateUser(email string, hashedPassword string, isVerified bool, isAdmin bo
 		VerificationCode: verificationCode,
 	}
 
+	log.Printf("Creating user isVerified=%t, isAdmin=%t\n", isVerified, isAdmin)
+
 	err := db.Create(&user).Error
 	if err != nil {
 		return nil, err

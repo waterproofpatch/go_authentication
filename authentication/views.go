@@ -71,8 +71,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = CreateUser(registerRequest.Email,
 		hashedPassword,
-		false, //isVerified
-		false, //isAdmin
+		!GetConfig().RequireAccountVerification, // isVerified
+		false,                                   // isAdmin
 		GeneratePseudorandomToken())
 	if err != nil {
 		WriteError(w, "Failed creating your account. This isn't your fault.", http.StatusInternalServerError)
