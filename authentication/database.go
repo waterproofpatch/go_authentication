@@ -34,6 +34,7 @@ func GetDb() *gorm.DB {
 	}
 	return gDb
 }
+
 func InitDb(dbUrl string, dropTables bool) {
 	database, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
 	if err != nil {
