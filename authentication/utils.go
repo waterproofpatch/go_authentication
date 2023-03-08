@@ -91,6 +91,10 @@ func GenerateJwtToken(user *User) (string, error) {
 
 func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string) {
 	authToken := r.Header.Get("Authorization")
+	return ParseToken(authToken)
+}
+
+func ParseToken(authToken string) (bool, *JWTData, string) {
 	authArr := strings.Split(authToken, " ")
 
 	if len(authArr) != 2 {
