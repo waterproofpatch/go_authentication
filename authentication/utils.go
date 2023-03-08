@@ -98,7 +98,7 @@ func ParseToken(authToken string) (bool, *JWTData, string) {
 	authArr := strings.Split(authToken, " ")
 
 	if len(authArr) != 2 {
-		log.Println("Authentication header is invalid: " + authToken)
+		log.Println("Authentication header is invalid.")
 		return false, nil, "Invalid Authorization bearer"
 	}
 
