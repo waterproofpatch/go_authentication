@@ -54,10 +54,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Invalid request!", http.StatusBadRequest)
 		return
 	}
-	if !isValidInput(registerRequest.Email) {
-		WriteError(w, "Invalid email!", http.StatusBadRequest)
-		return
-	}
 	if !isValidPassword(registerRequest.Password) {
 		WriteError(w, "Invalid password!", http.StatusBadRequest)
 		return
