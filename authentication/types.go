@@ -13,6 +13,7 @@ type LoginRequest struct {
 
 type RegisterRequest struct {
 	Email    string `json:"email"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -21,9 +22,7 @@ type JWTData struct {
 	// https://tools.ietf.org/html/rfc7519
 	jwt.StandardClaims
 	Email      string `json:"email"`
-	IsAdmin    bool   `json:"IsAdmin"`
+	Username   string `json:"username"`
+	IsAdmin    bool   `json:"isAdmin"`
 	IsVerified bool   `json:"isVerified"`
-	FirstName  string `json:"firstName"`
-	LastName   string `json:"lastName"`
-	Phone      string `json:"phone"`
 }

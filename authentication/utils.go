@@ -30,7 +30,7 @@ func IsValidEmail(email string) bool {
 }
 
 // create a new user in a database.
-func CreateUser(email string, hashedPassword string, isVerified bool, isAdmin bool, verificationCode string) (*User, error) {
+func CreateUser(email string, username string, hashedPassword string, isVerified bool, isAdmin bool, verificationCode string) (*User, error) {
 	db := GetDb()
 	var user = User{
 		Email:            email,
@@ -38,9 +38,10 @@ func CreateUser(email string, hashedPassword string, isVerified bool, isAdmin bo
 		IsVerified:       isVerified,
 		IsAdmin:          isAdmin,
 		VerificationCode: verificationCode,
+		Username:         username,
 	}
 
-	log.Printf("Creating user isVerified=%t, isAdmin=%t\n", isVerified, isAdmin)
+	log.Printf("Creating user username=%s, isVerified=%t, isAdmin=%t\n", username, isVerified, isAdmin)
 
 	err := db.Create(&user).Error
 	if err != nil {
@@ -77,6 +78,7 @@ func GenerateJwtToken(user *User) (string, error) {
 		},
 
 		Email:      user.Email,
+		Username:   user.Username,
 		IsVerified: user.IsVerified,
 		IsAdmin:    user.IsAdmin,
 	}

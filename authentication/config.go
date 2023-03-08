@@ -2,8 +2,9 @@ package authentication
 
 type Config struct {
 	RequireAccountVerification bool
-	DefaultAdminUser           string
-	DefaultAdminPass           string
+	DefaultAdminEmail          string
+	DefaultUsername            string
+	DefaultAdminPassword       string
 	Secret                     string
 }
 
@@ -19,9 +20,10 @@ func GetConfig() *Config {
 	return gCfg
 }
 
-func InitConfig(secret string, defaultAdminUser string, defaultAdminPassword string, requireAccountVerification bool) {
+func InitConfig(secret string, defaultAdminEmail string, defaultUsername string, defaultAdminPassword string, requireAccountVerification bool) {
+	GetConfig().DefaultUsername = defaultUsername
 	GetConfig().RequireAccountVerification = requireAccountVerification
 	GetConfig().Secret = secret
-	GetConfig().DefaultAdminUser = defaultAdminUser
-	GetConfig().DefaultAdminPass = defaultAdminPassword
+	GetConfig().DefaultAdminEmail = defaultAdminEmail
+	GetConfig().DefaultAdminPassword = defaultAdminPassword
 }

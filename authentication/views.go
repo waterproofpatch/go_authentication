@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/gorilla/mux"
 )
@@ -37,6 +38,15 @@ func getUsers(users *[]User) error {
 	return db.Find(users).Error
 }
 
+func isValidInput(input string) bool {
+	var alphanumeric = regexp.MustCompile(`^[a-zA-Z0-9_]{3,16}$`)
+	return alphanumeric.MatchString(input)
+}
+func isValidPassword(password string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{3,256}$`)
+	return re.MatchString(password)
+}
+
 func register(w http.ResponseWriter, r *http.Request) {
 	var registerRequest RegisterRequest
 	err := json.NewDecoder(r.Body).Decode(&registerRequest)
@@ -44,12 +54,16 @@ func register(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Invalid request!", http.StatusBadRequest)
 		return
 	}
-	if len(registerRequest.Email) == 0 {
+	if !isValidInput(registerRequest.Email) {
 		WriteError(w, "Invalid email!", http.StatusBadRequest)
 		return
 	}
-	if len(registerRequest.Password) == 0 {
+	if !isValidPassword(registerRequest.Password) {
 		WriteError(w, "Invalid password!", http.StatusBadRequest)
+		return
+	}
+	if !isValidInput(registerRequest.Username) {
+		WriteError(w, "Invalid username!", http.StatusBadRequest)
 		return
 	}
 
@@ -70,6 +84,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = CreateUser(registerRequest.Email,
+		registerRequest.Username,
 		hashedPassword,
 		!GetConfig().RequireAccountVerification, // isVerified
 		false,                                   // isAdmin
