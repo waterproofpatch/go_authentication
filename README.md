@@ -23,3 +23,12 @@ e.g.:
 ```bash
 go get github.com/waterproofpatch/go_authentication@v0.0.0-c30dc896b129733e59a4d4b03550bf84c2d8b45d
 ```
+
+## Tagging
+
+To make a new tag of this repo so that it can be used by downstream projects:
+
+```bash
+git tag -a v0.0.0-alpha.2 -m "message""
+git push origin v0.0.0-alpha.2
+```
