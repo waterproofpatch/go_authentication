@@ -27,7 +27,7 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 	}
 }
 
-func VerifiedOnly(inner func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -44,7 +44,7 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request)) func(http.Resp
 			return
 		}
 
-		inner(w, r)
+		inner(w, r, claims)
 
 		timeTaken := time.Since(start)
 		log.Printf(
