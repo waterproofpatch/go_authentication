@@ -66,10 +66,24 @@ func GeneratePseudorandomToken() string {
 	return token
 }
 
-func GenerateJwtToken(user *User) (string, error) {
+func GenerateJwtToken(user *User) (string, string, error) {
 	// an extra check tightly coupled to token generation, don't generate a token if the user isn't verified.
 	if !user.IsVerified {
-		return "", errors.New("User is not yet verified.")
+		return "", "", errors.New("User is not yet verified.")
+	}
+
+	refreshClaims := JWTData{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		},
+
+		Email: user.Email,
+	}
+
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshTokenString, err := refreshToken.SignedString([]byte(GetConfig().RefreshSecret))
+	if err != nil {
+		return "", "", errors.New("Failed generating refresh token!")
 	}
 
 	claims := JWTData{
@@ -86,9 +100,9 @@ func GenerateJwtToken(user *User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(GetConfig().Secret))
 	if err != nil {
-		return "", errors.New("Failed generating token!")
+		return "", "", errors.New("Failed generating token!")
 	}
-	return tokenString, nil
+	return tokenString, refreshTokenString, nil
 }
 
 func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string) {

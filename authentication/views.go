@@ -113,12 +113,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if DoPasswordsMatch(user.Password, loginRequest.Password) {
-		tokenString, err := GenerateJwtToken(user)
+		tokenString, refreshTokenString, err := GenerateJwtToken(user)
 		if err != nil {
 			WriteError(w, "Faled getting token string!", http.StatusInternalServerError)
 			return
 		}
 
+		// the access token comes back to the JSON frontend,
+		// the refresh token is not sent in the payload, but
+		// rather the header, for the browser to take care of
 		json, err := json.Marshal(struct {
 			Token string `json:"token"`
 		}{
@@ -131,6 +134,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		cookie := http.Cookie{
+			// true means no scripts, http requests only. This has
+			// nothing to do with https vs http
+			HttpOnly: true,
+			Name:     "RefreshToken",
+			Value:    refreshTokenString,
+			Secure:   true,
+		}
+		http.SetCookie(w, &cookie)
 		w.Write(json)
 	} else {
 		WriteError(w, "Invalid credentials!", http.StatusUnauthorized)

@@ -6,6 +6,7 @@ type Config struct {
 	DefaultUsername            string
 	DefaultAdminPassword       string
 	Secret                     string
+	RefreshSecret              string
 }
 
 var gCfg *Config
@@ -13,17 +14,16 @@ var gCfg *Config
 // GetConfig returns the singleton Config object.
 func GetConfig() *Config {
 	if gCfg == nil {
-		gCfg = &Config{
-			// like postgres://<dbuser>:<user>@<host>:<port>/<dbname>
-		}
+		gCfg = &Config{}
 	}
 	return gCfg
 }
 
-func InitConfig(secret string, defaultAdminEmail string, defaultUsername string, defaultAdminPassword string, requireAccountVerification bool) {
+func InitConfig(secret string, refreshSecret string, defaultAdminEmail string, defaultUsername string, defaultAdminPassword string, requireAccountVerification bool) {
 	GetConfig().DefaultUsername = defaultUsername
 	GetConfig().RequireAccountVerification = requireAccountVerification
 	GetConfig().Secret = secret
+	GetConfig().RefreshSecret = refreshSecret
 	GetConfig().DefaultAdminEmail = defaultAdminEmail
 	GetConfig().DefaultAdminPassword = defaultAdminPassword
 }

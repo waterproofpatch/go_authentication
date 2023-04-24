@@ -3,6 +3,7 @@ package authentication
 import "github.com/gorilla/mux"
 
 func Init(secret string,
+	refreshSecret string,
 	defaultAdminEmail string,
 	defaultAdminUsername string,
 	defaultAdminPassword string,
@@ -11,6 +12,7 @@ func Init(secret string,
 	dropTables bool,
 	requireAccountVerification bool) {
 	InitConfig(secret,
+		refreshSecret,
 		defaultAdminEmail,
 		defaultAdminUsername,
 		defaultAdminPassword,
