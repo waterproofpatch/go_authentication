@@ -107,10 +107,10 @@ func GenerateJwtToken(user *User) (string, string, error) {
 
 func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string) {
 	authToken := r.Header.Get("Authorization")
-	return ParseToken(authToken)
+	return ParseToken(authToken, false)
 }
 
-func ParseToken(authToken string) (bool, *JWTData, string) {
+func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string) {
 	authArr := strings.Split(authToken, " ")
 
 	if len(authArr) != 2 {
@@ -123,7 +123,13 @@ func ParseToken(authToken string) (bool, *JWTData, string) {
 		if jwt.SigningMethodHS256 != token.Method {
 			return nil, errors.New("Invalid signing algorithm")
 		}
-		return []byte(GetConfig().Secret), nil
+		if !isRefresh {
+
+			return []byte(GetConfig().Secret), nil
+		} else {
+
+			return []byte(GetConfig().RefreshSecret), nil
+		}
 	})
 
 	if err != nil {
@@ -132,7 +138,7 @@ func ParseToken(authToken string) (bool, *JWTData, string) {
 	}
 	claims, ok := token.Claims.(*JWTData)
 	if !ok {
-		log.Printf("Failed processing claims")
+		log.Printf("Failed processing claims\n")
 		return false, nil, "Invalid claims"
 	}
 	return true, claims, ""

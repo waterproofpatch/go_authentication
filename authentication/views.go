@@ -100,11 +100,10 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Unable to read refresh token.", http.StatusUnauthorized)
 		return
 	}
-	fmt.Println("\nPrinting cookie with name as token")
-	fmt.Println(tokenCookie)
-	success, jwt, errorStr := ParseToken(tokenCookie.Value)
+	tokenCookieWithBearer := fmt.Sprintf("Bearer %s", tokenCookie.Value)
+	success, jwt, errorStr := ParseToken(tokenCookieWithBearer, true)
 	if !success {
-		fmt.Printf("Error parsing token: %s", errorStr)
+		fmt.Printf("Failed parsing refreshToken: %s", errorStr)
 		WriteError(w, "Failed parsing refreshToken", http.StatusUnauthorized)
 		return
 	}
