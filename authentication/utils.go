@@ -88,7 +88,7 @@ func GenerateJwtToken(user *User) (string, string, error) {
 
 	claims := JWTData{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Minute).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 100).Unix(),
 		},
 
 		Email:      user.Email,
