@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -34,9 +35,9 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData)) func
 		log.Printf(
 			"Start %s - %s %s", r.RemoteAddr, r.Method, r.RequestURI)
 
-		parsed, claims, _ := IsAuthorized(w, r)
+		parsed, claims, errorString := IsAuthorized(w, r)
 		if !parsed {
-
+			fmt.Printf("User is not authorized, error parsing claims: %s", errorString)
 			WriteError(w, "Must be logged in to perform this action.", http.StatusUnauthorized)
 			return
 		} else if !claims.IsVerified {

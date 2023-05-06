@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -89,6 +90,63 @@ func register(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Failed creating your account. This isn't your fault.", http.StatusInternalServerError)
 		return
 	}
+}
+
+// parse the refresh token from the supplied cookie, and if valid, issue a new
+// access token and new refresh token.
+func refresh(w http.ResponseWriter, r *http.Request) {
+	tokenCookie, err := r.Cookie("RefreshToken")
+	if err != nil {
+		WriteError(w, "Unable to read refresh token.", http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("\nPrinting cookie with name as token")
+	fmt.Println(tokenCookie)
+	success, jwt, errorStr := ParseToken(tokenCookie.Value)
+	if !success {
+		fmt.Printf("Error parsing token: %s", errorStr)
+		WriteError(w, "Failed parsing refreshToken", http.StatusUnauthorized)
+		return
+	}
+	var user *User
+	user, err = getUserByEmail(jwt.Email)
+	if err != nil {
+		WriteError(w, "No user for email from the refresh token.", http.StatusUnauthorized)
+		return
+	}
+	// make a new token
+	tokenString, refreshTokenString, err := GenerateJwtToken(user)
+	if err != nil {
+		WriteError(w, "Faled getting token string!", http.StatusInternalServerError)
+		return
+	}
+
+	// the access token comes back to the JSON frontend,
+	// the refresh token is not sent in the payload, but
+	// rather the header, for the browser to take care of
+	json, err := json.Marshal(struct {
+		Token string `json:"token"`
+	}{
+		tokenString,
+	})
+
+	if err != nil {
+		log.Println(err)
+		WriteError(w, "Failed generating a new token", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := http.Cookie{
+		// true means no scripts, http requests only. This has
+		// nothing to do with https vs http
+		HttpOnly: true,
+		Name:     "RefreshToken",
+		Value:    refreshTokenString,
+		Secure:   true,
+	}
+	http.SetCookie(w, &cookie)
+	w.Write(json)
+	return
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -204,6 +262,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 
 func InitViews(router *mux.Router) {
 	router.HandleFunc("/api/login", login).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/refresh", refresh).Methods("GET", "OPTIONS")
 	router.HandleFunc("/api/register", register).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/users", AdminOnly(users)).Methods("GET", "PUT", "OPTIONS")
 	router.HandleFunc("/api/users/{id:[0-9]+}", AdminOnly(users)).Methods("POST", "GET", "OPTIONS", "PUT")
