@@ -28,7 +28,7 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 	}
 }
 
-func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData)) func(http.ResponseWriter, *http.Request) {
+func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allowUnverified bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -38,11 +38,15 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData)) func
 		parsed, claims, errorString := IsAuthorized(w, r)
 		if !parsed {
 			fmt.Printf("User is not authorized, error parsing claims: %s", errorString)
-			WriteError(w, "Must be logged in to perform this action.", http.StatusUnauthorized)
-			return
+			if !allowUnverified {
+				WriteError(w, "Must be logged in to perform this action.", http.StatusUnauthorized)
+				return
+			}
 		} else if !claims.IsVerified {
-			WriteError(w, "Only verified accounts can perform this action", http.StatusUnauthorized)
-			return
+			if !allowUnverified {
+				WriteError(w, "Only verified accounts can perform this action", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		inner(w, r, claims)
