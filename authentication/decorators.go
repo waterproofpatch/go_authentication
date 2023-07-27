@@ -12,9 +12,9 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 		start := time.Now()
 
 		log.Printf(
-			"Start %s - %s %s", r.RemoteAddr, r.Method, r.RequestURI)
+			"Start %s - %s %s\n", r.RemoteAddr, r.Method, r.RequestURI)
 
-		isAuth, _, errString := IsAuthorized(w, r)
+		isAuth, _, errString, _ := IsAuthorized(w, r)
 		if !isAuth {
 			WriteError(w, errString, http.StatusUnauthorized)
 			return
@@ -23,8 +23,7 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 
 		timeTaken := time.Since(start)
 		log.Printf(
-			"End %s - %s %s - took %d", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
-
+			"End %s - %s %s - took %d\n", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
 	}
 }
 
@@ -33,12 +32,16 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allo
 		start := time.Now()
 
 		log.Printf(
-			"Start %s - %s %s", r.RemoteAddr, r.Method, r.RequestURI)
+			"Start %s - %s %s\n", r.RemoteAddr, r.Method, r.RequestURI)
 
-		parsed, claims, errorString := IsAuthorized(w, r)
+		parsed, claims, errorString, reason := IsAuthorized(w, r)
 		if !parsed {
-			fmt.Printf("User is not authorized, error parsing claims: %s", errorString)
-			if !allowUnverified {
+			fmt.Printf("User is not authorized, error parsing claims: %s, reason=%s\n", errorString, reason)
+			// even if we're allowing unverified users, if the user
+			// sent a token but it's expired, we want to send them
+			// the unauthorized error so their frontend can do
+			// something sensible with it
+			if !allowUnverified || reason == EXPIRED {
 				WriteError(w, "Must be logged in to perform this action.", http.StatusUnauthorized)
 				return
 			}
@@ -53,8 +56,7 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allo
 
 		timeTaken := time.Since(start)
 		log.Printf(
-			"End %s - %s %s - took %d", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
-
+			"End %s - %s %s - took %d\n", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
 	}
 }
 
@@ -63,14 +65,14 @@ func AdminOnly(inner func(http.ResponseWriter, *http.Request)) func(http.Respons
 		start := time.Now()
 
 		log.Printf(
-			"Start %s - %s %s", r.RemoteAddr, r.Method, r.RequestURI)
+			"Start %s - %s %s\n", r.RemoteAddr, r.Method, r.RequestURI)
 
-		parsed, claims, _ := IsAuthorized(w, r)
+		parsed, claims, _, _ := IsAuthorized(w, r)
 		if !parsed || !claims.IsAdmin {
 			if !parsed {
-				log.Printf("Failed parsing claims.")
+				log.Printf("Failed parsing claims.\n")
 			} else {
-				log.Printf("Claims valid, but not admin!")
+				log.Printf("Claims valid, but not admin!\n")
 			}
 			log.Printf("Rejecting authentication %s for %s\n", r.Host, r.RequestURI)
 			WriteError(w, "Only admin can perform this action.", http.StatusUnauthorized)
@@ -81,7 +83,6 @@ func AdminOnly(inner func(http.ResponseWriter, *http.Request)) func(http.Respons
 
 		timeTaken := time.Since(start)
 		log.Printf(
-			"End %s - %s %s - took %d", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
-
+			"End %s - %s %s - took %d\n", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
 	}
 }

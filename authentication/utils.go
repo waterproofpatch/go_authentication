@@ -16,7 +16,7 @@ import (
 // Hash password
 func HashPassword(password string) (string, error) {
 	// Convert password string to byte slice
-	var passwordBytes = []byte(password)
+	passwordBytes := []byte(password)
 	// Hash password with Bcrypt's min cost
 	hashedPasswordBytes, err := bcrypt.
 		GenerateFromPassword(passwordBytes, bcrypt.MinCost)
@@ -32,7 +32,7 @@ func IsValidEmail(email string) bool {
 // create a new user in a database.
 func CreateUser(email string, username string, hashedPassword string, isVerified bool, isAdmin bool, verificationCode string) (*User, error) {
 	db := GetDb()
-	var user = User{
+	user := User{
 		Email:            email,
 		Password:         hashedPassword,
 		IsVerified:       isVerified,
@@ -105,17 +105,41 @@ func GenerateJwtToken(user *User) (string, string, error) {
 	return tokenString, refreshTokenString, nil
 }
 
-func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string) {
+func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string, Reason) {
 	authToken := r.Header.Get("Authorization")
 	return ParseToken(authToken, false)
 }
 
-func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string) {
+type Reason int
+
+const (
+	NA Reason = iota
+	EXPIRED
+	BAD_BEARER
+	INVALID_CLAIMS
+)
+
+func (r Reason) String() string {
+	switch r {
+	case NA:
+		return "NA"
+	case EXPIRED:
+		return "EXPIRED"
+	case BAD_BEARER:
+		return "BAD_BEARER"
+	case INVALID_CLAIMS:
+		return "INVALID_CLAIMS"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string, Reason) {
 	authArr := strings.Split(authToken, " ")
 
 	if len(authArr) != 2 {
 		log.Println("Authentication header is invalid.")
-		return false, nil, "Invalid Authorization bearer"
+		return false, nil, "Invalid Authorization bearer", BAD_BEARER
 	}
 
 	jwtToken := authArr[1]
@@ -124,29 +148,31 @@ func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string) {
 			return nil, errors.New("Invalid signing algorithm")
 		}
 		if !isRefresh {
-
 			return []byte(GetConfig().Secret), nil
 		} else {
-
 			return []byte(GetConfig().RefreshSecret), nil
 		}
 	})
-
 	if err != nil {
-		log.Printf("Error %v\n", err)
-		return false, nil, "Login expired"
+		if ve, ok := err.(*jwt.ValidationError); ok && ve.Errors&jwt.ValidationErrorExpired != 0 {
+			log.Printf("Token is expired\n")
+			return false, nil, "Login expired", EXPIRED
+		} else {
+			log.Printf("Error %v\n", err)
+			return false, nil, "Invalid token", BAD_BEARER
+		}
 	}
+
 	claims, ok := token.Claims.(*JWTData)
 	if !ok {
 		log.Printf("Failed processing claims\n")
-		return false, nil, "Invalid claims"
+		return false, nil, "Invalid claims", INVALID_CLAIMS
 	}
-	return true, claims, ""
+	return true, claims, "", NA
 }
 
-func IsAuthorized(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string) {
-
+func IsAuthorized(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string, Reason) {
 	// it's enough to just be able to parse the claims
-	parsed, claims, errorString := ParseClaims(w, r)
-	return parsed, claims, errorString
+	parsed, claims, errorString, reason := ParseClaims(w, r)
+	return parsed, claims, errorString, reason
 }

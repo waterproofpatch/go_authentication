@@ -40,9 +40,10 @@ func getUsers(users *[]User) error {
 }
 
 func isValidInput(input string) bool {
-	var alphanumeric = regexp.MustCompile(`^[a-zA-Z0-9_]{3,16}$`)
+	alphanumeric := regexp.MustCompile(`^[a-zA-Z0-9_]{3,16}$`)
 	return alphanumeric.MatchString(input)
 }
+
 func isValidPassword(password string) bool {
 	re := regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{3,256}$`)
 	return re.MatchString(password)
@@ -101,9 +102,9 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tokenCookieWithBearer := fmt.Sprintf("Bearer %s", tokenCookie.Value)
-	success, jwt, errorStr := ParseToken(tokenCookieWithBearer, true)
+	success, jwt, errorStr, reason := ParseToken(tokenCookieWithBearer, true)
 	if !success {
-		fmt.Printf("Failed parsing refreshToken: %s", errorStr)
+		fmt.Printf("Failed parsing refreshToken: %s, reason=%s", errorStr, reason)
 		WriteError(w, "Failed parsing refreshToken", http.StatusUnauthorized)
 		return
 	}
@@ -128,7 +129,6 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	}{
 		tokenString,
 	})
-
 	if err != nil {
 		log.Println(err)
 		WriteError(w, "Failed generating a new token", http.StatusInternalServerError)
@@ -184,7 +184,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		}{
 			tokenString,
 		})
-
 		if err != nil {
 			log.Println(err)
 			WriteError(w, "Failed generating a new token", http.StatusInternalServerError)
