@@ -142,6 +142,10 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		Name:     "RefreshToken",
 		Value:    refreshTokenString,
 		Secure:   true,
+		// http vs https means different URI scheme, local dev
+		// has frontend on https and backend on http, prod has
+		// front and backend on both https
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &cookie)
 	w.Write(json)
@@ -197,6 +201,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 			Name:     "RefreshToken",
 			Value:    refreshTokenString,
 			Secure:   true,
+			// http vs https means different URI scheme, local dev
+			// has frontend on https and backend on http, prod has
+			// front and backend on both https
+			SameSite: http.SameSiteNoneMode,
 		}
 		http.SetCookie(w, &cookie)
 		w.Write(json)
