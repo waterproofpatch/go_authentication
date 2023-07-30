@@ -135,18 +135,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := http.Cookie{
-		// true means no scripts, http requests only. This has
-		// nothing to do with https vs http
-		HttpOnly: true,
-		Name:     "RefreshToken",
-		Value:    refreshTokenString,
-		Secure:   true,
-		// http vs https means different URI scheme, local dev
-		// has frontend on https and backend on http, prod has
-		// front and backend on both https
-		SameSite: http.SameSiteNoneMode,
-	}
+	cookie := MakeRefreshToken(refreshTokenString)
 	http.SetCookie(w, &cookie)
 	w.Write(json)
 	return
@@ -194,18 +183,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cookie := http.Cookie{
-			// true means no scripts, http requests only. This has
-			// nothing to do with https vs http
-			HttpOnly: true,
-			Name:     "RefreshToken",
-			Value:    refreshTokenString,
-			Secure:   true,
-			// http vs https means different URI scheme, local dev
-			// has frontend on https and backend on http, prod has
-			// front and backend on both https
-			SameSite: http.SameSiteNoneMode,
-		}
+		cookie := MakeRefreshToken(refreshTokenString)
 		http.SetCookie(w, &cookie)
 		w.Write(json)
 	} else {

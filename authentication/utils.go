@@ -105,6 +105,23 @@ func GenerateJwtToken(user *User) (string, string, error) {
 	return tokenString, refreshTokenString, nil
 }
 
+// make a refresh token for use with the 'refresh' API.
+func MakeRefreshToken(refreshTokenString string) http.Cookie {
+	cookie := http.Cookie{
+		// true means no scripts, http requests only. This has
+		// nothing to do with https vs http
+		HttpOnly: true,
+		Name:     "RefreshToken",
+		Value:    refreshTokenString,
+		Secure:   true,
+		// http vs https means different URI scheme, local dev
+		// has frontend on https and backend on http, prod has
+		// front and backend on both https
+		SameSite: http.SameSiteNoneMode,
+	}
+	return cookie
+}
+
 func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string, Reason) {
 	authToken := r.Header.Get("Authorization")
 	return ParseToken(authToken, false)
