@@ -106,26 +106,6 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 	return tokenString, refreshTokenString, nil
 }
 
-// make a access token.
-func MakeAccessTokenCookie(accessTokenString string) http.Cookie {
-	fmt.Println("Making access token cookie")
-	cookie := http.Cookie{
-		// true means no scripts, http requests only. This has
-		// nothing to do with https vs http
-		HttpOnly: true,
-		MaxAge:   60 * 60, // hour
-		Path:     "/api",
-		Name:     "AccessToken",
-		Value:    accessTokenString,
-		Secure:   true,
-		// http vs https means different URI scheme, local dev
-		// has frontend on https and backend on http, prod has
-		// front and backend on both https
-		SameSite: http.SameSiteNoneMode,
-	}
-	return cookie
-}
-
 func MakeRefreshTokenCookie(refreshTokenString string) http.Cookie {
 	fmt.Println("Making refresh token cookie")
 	cookie := http.Cookie{

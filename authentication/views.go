@@ -211,9 +211,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		refreshCookie := MakeRefreshTokenCookie(refreshTokenString)
-		accessCookie := MakeAccessTokenCookie(accessTokenString)
 		http.SetCookie(w, &refreshCookie)
-		http.SetCookie(w, &accessCookie)
 		w.Write(json)
 	} else {
 		WriteError(w, "Invalid credentials!", http.StatusUnauthorized)
