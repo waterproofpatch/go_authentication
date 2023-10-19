@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/mail"
@@ -106,11 +107,14 @@ func GenerateJwtToken(user *User) (string, string, error) {
 }
 
 // make a refresh token for use with the 'refresh' API.
-func MakeRefreshToken(refreshTokenString string) http.Cookie {
+func MakeRefreshTokenCookie(refreshTokenString string) http.Cookie {
+	fmt.Println("Making refresh token cookie")
 	cookie := http.Cookie{
 		// true means no scripts, http requests only. This has
 		// nothing to do with https vs http
 		HttpOnly: true,
+		MaxAge:   60 * 60 * 24 * 7,
+		Path:     "/api",
 		Name:     "RefreshToken",
 		Value:    refreshTokenString,
 		Secure:   true,

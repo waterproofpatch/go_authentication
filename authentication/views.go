@@ -135,8 +135,30 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := MakeRefreshToken(refreshTokenString)
+	cookie := MakeRefreshTokenCookie(refreshTokenString)
 	http.SetCookie(w, &cookie)
+	w.Write(json)
+	return
+}
+
+// destroy the refreshtoken on the client so their browser
+// doesn't hold onto it anymore.
+func logout(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Destroying refresh token...")
+	c := http.Cookie{
+		Name:     "RefreshToken",
+		Path:     "/api",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	json, _ := json.Marshal(struct {
+		string `json:"foo"`
+	}{
+		"bar",
+	})
+	http.SetCookie(w, &c)
 	w.Write(json)
 	return
 }
@@ -183,7 +205,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cookie := MakeRefreshToken(refreshTokenString)
+		cookie := MakeRefreshTokenCookie(refreshTokenString)
 		http.SetCookie(w, &cookie)
 		w.Write(json)
 	} else {
@@ -246,6 +268,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 
 func InitViews(router *mux.Router) {
 	router.HandleFunc("/api/login", login).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/logout", logout).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/refresh", refresh).Methods("GET", "OPTIONS")
 	router.HandleFunc("/api/register", register).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/users", AdminOnly(users)).Methods("GET", "PUT", "OPTIONS")
