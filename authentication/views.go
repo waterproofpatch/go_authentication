@@ -115,7 +115,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// make a new token
-	tokenString, refreshTokenString, err := GenerateJwtToken(user)
+	accessTokenString, refreshTokenString, err := GenerateJwtTokens(user)
 	if err != nil {
 		WriteError(w, "Faled getting token string!", http.StatusInternalServerError)
 		return
@@ -127,7 +127,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	json, err := json.Marshal(struct {
 		Token string `json:"token"`
 	}{
-		tokenString,
+		accessTokenString,
 	})
 	if err != nil {
 		log.Println(err)
@@ -135,8 +135,10 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := MakeRefreshTokenCookie(refreshTokenString)
-	http.SetCookie(w, &cookie)
+	refreshCookie := MakeRefreshTokenCookie(refreshTokenString)
+	accessCookie := MakeRefreshTokenCookie(accessTokenString)
+	http.SetCookie(w, &refreshCookie)
+	http.SetCookie(w, &accessCookie)
 	w.Write(json)
 	return
 }
@@ -145,7 +147,15 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 // doesn't hold onto it anymore.
 func logout(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Destroying refresh token...")
-	c := http.Cookie{
+	deleteAccessTokenCookie := http.Cookie{
+		Name:     "AccessToken",
+		Path:     "/api",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	deleteRefreshTokenCookie := http.Cookie{
 		Name:     "RefreshToken",
 		Path:     "/api",
 		MaxAge:   -1,
@@ -153,13 +163,8 @@ func logout(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 	}
-	json, _ := json.Marshal(struct {
-		string `json:"foo"`
-	}{
-		"bar",
-	})
-	http.SetCookie(w, &c)
-	w.Write(json)
+	http.SetCookie(w, &deleteRefreshTokenCookie)
+	http.SetCookie(w, &deleteAccessTokenCookie)
 	return
 }
 
@@ -185,7 +190,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if DoPasswordsMatch(user.Password, loginRequest.Password) {
-		tokenString, refreshTokenString, err := GenerateJwtToken(user)
+		accessTokenString, refreshTokenString, err := GenerateJwtTokens(user)
 		if err != nil {
 			WriteError(w, "Faled getting token string!", http.StatusInternalServerError)
 			return
@@ -197,7 +202,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		json, err := json.Marshal(struct {
 			Token string `json:"token"`
 		}{
-			tokenString,
+			accessTokenString,
 		})
 		if err != nil {
 			log.Println(err)
@@ -205,8 +210,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cookie := MakeRefreshTokenCookie(refreshTokenString)
-		http.SetCookie(w, &cookie)
+		refreshCookie := MakeRefreshTokenCookie(refreshTokenString)
+		accessCookie := MakeAccessTokenCookie(accessTokenString)
+		http.SetCookie(w, &refreshCookie)
+		http.SetCookie(w, &accessCookie)
 		w.Write(json)
 	} else {
 		WriteError(w, "Invalid credentials!", http.StatusUnauthorized)
