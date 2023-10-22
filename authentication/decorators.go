@@ -9,10 +9,7 @@ import (
 
 func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		log.Printf(
-			"Start %s - %s %s\n", r.RemoteAddr, r.Method, r.RequestURI)
+		log.Printf("%s:%s\n", r.Method, r.RequestURI)
 
 		isAuth, _, errString, _ := IsAuthorized(w, r)
 		if !isAuth {
@@ -20,19 +17,12 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 			return
 		}
 		inner(w, r)
-
-		timeTaken := time.Since(start)
-		log.Printf(
-			"End %s - %s %s - took %d\n", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
 	}
 }
 
 func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allowUnverified bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		log.Printf(
-			"Start %s - %s %s\n", r.RemoteAddr, r.Method, r.RequestURI)
+		log.Printf("%s:%s\n", r.Method, r.RequestURI)
 
 		parsed, claims, errorString, reason := IsAuthorized(w, r)
 		if !parsed {
@@ -53,10 +43,6 @@ func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allo
 		}
 
 		inner(w, r, claims)
-
-		timeTaken := time.Since(start)
-		log.Printf(
-			"End %s - %s %s - took %d\n", r.RemoteAddr, r.Method, r.RequestURI, timeTaken)
 	}
 }
 
