@@ -121,9 +121,9 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// the access token comes back to the JSON frontend,
-	// the refresh token is not sent in the payload, but
-	// rather the header, for the browser to take care of
+	// the access token comes back to the JSON frontend, the refresh token
+	// is not sent in the payload, but rather the header as a cookie, for
+	// the browser to take care of
 	json, err := json.Marshal(struct {
 		Token string `json:"token"`
 	}{
@@ -136,9 +136,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	refreshCookie := MakeRefreshTokenCookie(refreshTokenString)
-	accessCookie := MakeRefreshTokenCookie(accessTokenString)
 	http.SetCookie(w, &refreshCookie)
-	http.SetCookie(w, &accessCookie)
 	w.Write(json)
 	return
 }

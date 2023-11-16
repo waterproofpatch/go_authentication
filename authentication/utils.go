@@ -67,8 +67,10 @@ func GeneratePseudorandomToken() string {
 	return token
 }
 
+// Generate access and refresh JWT tokens.
 func GenerateJwtTokens(user *User) (string, string, error) {
-	// an extra check tightly coupled to token generation, don't generate a token if the user isn't verified.
+	// an extra check tightly coupled to token generation, don't generate a
+	// token if the user isn't verified.
 	if !user.IsVerified {
 		return "", "", errors.New("User is not yet verified.")
 	}
@@ -87,9 +89,9 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 		return "", "", errors.New("Failed generating refresh token!")
 	}
 
-	claims := JWTData{
+	accessClaims := JWTData{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+			ExpiresAt: time.Now().Add(time.Second * 20).Unix(),
 		},
 
 		Email:      user.Email,
@@ -98,12 +100,12 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 		IsAdmin:    user.IsAdmin,
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(GetConfig().Secret))
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+	accessTokenString, err := accessToken.SignedString([]byte(GetConfig().Secret))
 	if err != nil {
 		return "", "", errors.New("Failed generating token!")
 	}
-	return tokenString, refreshTokenString, nil
+	return accessTokenString, refreshTokenString, nil
 }
 
 func MakeRefreshTokenCookie(refreshTokenString string) http.Cookie {
@@ -112,7 +114,7 @@ func MakeRefreshTokenCookie(refreshTokenString string) http.Cookie {
 		// true means no scripts, http requests only. This has
 		// nothing to do with https vs http
 		HttpOnly: true,
-		MaxAge:   60 * 60 * 24 * 7,
+		MaxAge:   60 * 60 * 24 * 7, // 7 days
 		Path:     "/api",
 		Name:     "RefreshToken",
 		Value:    refreshTokenString,
