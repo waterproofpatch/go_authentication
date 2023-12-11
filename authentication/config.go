@@ -1,5 +1,7 @@
 package authentication
 
+import "fmt"
+
 type Config struct {
 	RequireAccountVerification bool
 	DefaultAdminEmail          string
@@ -20,6 +22,7 @@ func GetConfig() *Config {
 }
 
 func InitConfig(secret string, refreshSecret string, defaultAdminEmail string, defaultUsername string, defaultAdminPassword string, requireAccountVerification bool) {
+	fmt.Printf("Initing authentication config...\n")
 	GetConfig().DefaultUsername = defaultUsername
 	GetConfig().RequireAccountVerification = requireAccountVerification
 	GetConfig().Secret = secret
