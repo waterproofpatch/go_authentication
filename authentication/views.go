@@ -288,6 +288,8 @@ func verify(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Verified user %v\n", user)
 
 	// Redirect the user
+	// TODO take the callback URL as a param so authentication service
+	// is not opinionated
 	if os.Getenv("DEBUG") == "true" {
 		http.Redirect(w, r, "https://localhost:4200/authentication?mode=login&verified=true", http.StatusSeeOther)
 	} else {
