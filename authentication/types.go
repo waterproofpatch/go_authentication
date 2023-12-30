@@ -26,3 +26,6 @@ type JWTData struct {
 	IsAdmin    bool   `json:"isAdmin"`
 	IsVerified bool   `json:"isVerified"`
 }
+
+// callers provide an implementation to be called when a user is registered
+type RegistrationVerifyCallback func(string, string) error

@@ -50,6 +50,8 @@ func CreateUser(email string, username string, hashedPassword string, isVerified
 	}
 	user.RegistrationDate = user.CreatedAt.Format(time.RFC1123)
 	db.Save(user)
+
+	GetConfig().RegistrationCallback(email, verificationCode)
 	return &user, nil
 }
 

@@ -10,13 +10,16 @@ func Init(secret string,
 	router *mux.Router,
 	dbUrl string,
 	dropTables bool,
-	requireAccountVerification bool) {
+	requireAccountVerification bool,
+	registrationVerifyCallback RegistrationVerifyCallback,
+) {
 	InitConfig(secret,
 		refreshSecret,
 		defaultAdminEmail,
 		defaultAdminUsername,
 		defaultAdminPassword,
-		requireAccountVerification)
+		requireAccountVerification,
+		registrationVerifyCallback)
 	InitViews(router)
 	InitDb(dbUrl, dropTables)
 }
