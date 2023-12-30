@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/gorilla/mux"
@@ -264,12 +265,38 @@ func users(w http.ResponseWriter, r *http.Request) {
 	err := getUsers(&users)
 	if err != nil {
 		WriteError(w, "Failed obtaining users", http.StatusBadRequest)
+		return
 	}
 	json, err := json.Marshal(users)
 	w.Write(json)
 }
 
+// attempt to verify a user by their code
+func verify(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
+	email := r.URL.Query().Get("email")
+
+	user, err := getUserByVerificationCode(code)
+
+	if user.Email != email || err != nil {
+		WriteError(w, "Invalid code.", http.StatusBadRequest)
+		return
+	}
+
+	user.IsVerified = true
+	GetDb().Save(user)
+	fmt.Printf("Verified user %v\n", user)
+
+	// Redirect the user
+	if os.Getenv("DEBUG") == "true" {
+		http.Redirect(w, r, "https://localhost:4200/authentication?mode=login&verified=true", http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "https://www.plantmindr.com/authentication?mode=login&verified=true", http.StatusSeeOther)
+	}
+}
+
 func InitViews(router *mux.Router) {
+	router.HandleFunc("/api/verify", verify).Methods("GET", "OPTIONS")
 	router.HandleFunc("/api/login", login).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/logout", logout).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/refresh", refresh).Methods("GET", "OPTIONS")
