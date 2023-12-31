@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 
 	"github.com/gorilla/mux"
@@ -283,18 +282,16 @@ func verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// user should now be able to log in
 	user.IsVerified = true
+	// no sense in keeping this
+	user.VerificationCode = ""
+
 	GetDb().Save(user)
 	fmt.Printf("Verified user %v\n", user)
 
 	// Redirect the user
-	// TODO take the callback URL as a param so authentication service
-	// is not opinionated
-	if os.Getenv("DEBUG") == "true" {
-		http.Redirect(w, r, "https://localhost:4200/authentication?mode=login&verified=true", http.StatusSeeOther)
-	} else {
-		http.Redirect(w, r, "https://www.plantmindr.com/authentication?mode=login&verified=true", http.StatusSeeOther)
-	}
+	http.Redirect(w, r, GetConfig().RegistrationCallbackUrl, http.StatusSeeOther)
 }
 
 func InitViews(router *mux.Router) {

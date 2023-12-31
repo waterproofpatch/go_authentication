@@ -10,6 +10,7 @@ type Config struct {
 	Secret                     string
 	RefreshSecret              string
 	RegistrationCallback       RegistrationVerifyCallback
+	RegistrationCallbackUrl    string
 }
 
 var gCfg *Config
@@ -29,6 +30,7 @@ func InitConfig(secret string,
 	defaultAdminPassword string,
 	requireAccountVerification bool,
 	registrationVerifyCallback RegistrationVerifyCallback,
+	registrationCallbackUrl string,
 ) {
 	fmt.Printf("Initing authentication config...\n")
 	GetConfig().DefaultUsername = defaultUsername
@@ -38,4 +40,5 @@ func InitConfig(secret string,
 	GetConfig().DefaultAdminEmail = defaultAdminEmail
 	GetConfig().DefaultAdminPassword = defaultAdminPassword
 	GetConfig().RegistrationCallback = registrationVerifyCallback
+	GetConfig().RegistrationCallbackUrl = registrationCallbackUrl
 }
