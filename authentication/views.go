@@ -288,7 +288,6 @@ func verify(w http.ResponseWriter, r *http.Request) {
 	user.VerificationCode = ""
 
 	GetDb().Save(user)
-	fmt.Printf("Verified user %v\n", user)
 
 	// Redirect the user
 	http.Redirect(w, r, GetConfig().RegistrationCallbackUrl, http.StatusSeeOther)
