@@ -91,6 +91,11 @@ func register(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Failed creating your account. This isn't your fault.", http.StatusInternalServerError)
 		return
 	}
+
+	// w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(&RegisterResponse{RequiresVerification: GetConfig().RequireAccountVerification})
 }
 
 // parse the refresh token from the supplied cookie, and if valid, issue a new
@@ -271,6 +276,8 @@ func users(w http.ResponseWriter, r *http.Request) {
 }
 
 // attempt to verify a user by their code
+// Example:
+// https://<host>:<port>/api/verify?code=<code>&email=<email>
 func verify(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	email := r.URL.Query().Get("email")
