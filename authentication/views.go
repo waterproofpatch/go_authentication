@@ -190,13 +190,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// only verified users can log in
-	if !user.IsVerified {
-		WriteError(w, "This account is not yet verified.", http.StatusUnauthorized)
-		return
-	}
-
 	if DoPasswordsMatch(user.Password, loginRequest.Password) {
+
+		// only verified users can log in
+		if !user.IsVerified {
+			WriteError(w, "This account is not yet verified.", http.StatusUnauthorized)
+			return
+		}
+
 		accessTokenString, refreshTokenString, err := GenerateJwtTokens(user)
 		if err != nil {
 			WriteError(w, "Faled getting token string!", http.StatusInternalServerError)
