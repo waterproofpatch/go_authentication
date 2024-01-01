@@ -19,6 +19,7 @@ type RegisterRequest struct {
 
 type RegisterResponse struct {
 	RequiresVerification bool `json:"requiresVerification"`
+	AlreadyVerified      bool `json:"alreadyVerified"`
 }
 
 type JWTData struct {
