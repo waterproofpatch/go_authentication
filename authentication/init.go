@@ -1,6 +1,9 @@
 package authentication
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/gorilla/mux"
+	"github.com/waterproofpatch/go_authentication/types"
+)
 
 func Init(secret string,
 	refreshSecret string,
@@ -11,7 +14,7 @@ func Init(secret string,
 	dbUrl string,
 	dropTables bool,
 	requireAccountVerification bool,
-	registrationVerifyCallback RegistrationVerifyCallback,
+	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
 ) {
 	InitConfig(secret,

@@ -11,6 +11,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/thanhpk/randstr"
+	"github.com/waterproofpatch/go_authentication/helpers"
+	"github.com/waterproofpatch/go_authentication/types"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -51,7 +53,7 @@ func CreateUser(email string, username string, hashedPassword string, isVerified
 	user.RegistrationDate = user.CreatedAt.Format(time.RFC1123)
 	db.Save(user)
 
-	GetConfig().RegistrationCallback(email, verificationCode)
+	helpers.GetConfig().RegistrationCallback(email, verificationCode)
 	return &user, nil
 }
 
@@ -77,7 +79,7 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 		return "", "", errors.New("User is not yet verified.")
 	}
 
-	refreshClaims := JWTData{
+	refreshClaims := types.JWTData{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 240).Unix(), // 10 days
 		},
@@ -86,12 +88,12 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	refreshTokenString, err := refreshToken.SignedString([]byte(GetConfig().RefreshSecret))
+	refreshTokenString, err := refreshToken.SignedString([]byte(helpers.GetConfig().RefreshSecret))
 	if err != nil {
 		return "", "", errors.New("Failed generating refresh token!")
 	}
 
-	accessClaims := JWTData{
+	accessClaims := types.JWTData{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 7).Unix(),
 		},
@@ -103,7 +105,7 @@ func GenerateJwtTokens(user *User) (string, string, error) {
 	}
 
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(GetConfig().Secret))
+	accessTokenString, err := accessToken.SignedString([]byte(helpers.GetConfig().Secret))
 	if err != nil {
 		return "", "", errors.New("Failed generating token!")
 	}
@@ -129,7 +131,7 @@ func MakeRefreshTokenCookie(refreshTokenString string) http.Cookie {
 	return cookie
 }
 
-func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string, Reason) {
+func ParseClaims(w http.ResponseWriter, r *http.Request) (bool, *types.JWTData, string, Reason) {
 	authToken := r.Header.Get("Authorization")
 	return ParseToken(authToken, false)
 }
@@ -158,7 +160,7 @@ func (r Reason) String() string {
 	}
 }
 
-func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string, Reason) {
+func ParseToken(authToken string, isRefresh bool) (bool, *types.JWTData, string, Reason) {
 	authArr := strings.Split(authToken, " ")
 
 	if len(authArr) != 2 {
@@ -167,14 +169,14 @@ func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string, Reaso
 	}
 
 	jwtToken := authArr[1]
-	token, err := jwt.ParseWithClaims(jwtToken, &JWTData{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtToken, &types.JWTData{}, func(token *jwt.Token) (interface{}, error) {
 		if jwt.SigningMethodHS256 != token.Method {
 			return nil, errors.New("Invalid signing algorithm")
 		}
 		if !isRefresh {
-			return []byte(GetConfig().Secret), nil
+			return []byte(helpers.GetConfig().Secret), nil
 		} else {
-			return []byte(GetConfig().RefreshSecret), nil
+			return []byte(helpers.GetConfig().RefreshSecret), nil
 		}
 	})
 	if err != nil {
@@ -187,7 +189,7 @@ func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string, Reaso
 		}
 	}
 
-	claims, ok := token.Claims.(*JWTData)
+	claims, ok := token.Claims.(*types.JWTData)
 	if !ok {
 		log.Printf("Failed processing claims\n")
 		return false, nil, "Invalid claims", INVALID_CLAIMS
@@ -195,7 +197,7 @@ func ParseToken(authToken string, isRefresh bool) (bool, *JWTData, string, Reaso
 	return true, claims, "", NA
 }
 
-func IsAuthorized(w http.ResponseWriter, r *http.Request) (bool, *JWTData, string, Reason) {
+func IsAuthorized(w http.ResponseWriter, r *http.Request) (bool, *types.JWTData, string, Reason) {
 	// it's enough to just be able to parse the claims
 	parsed, claims, errorString, reason := ParseClaims(w, r)
 	return parsed, claims, errorString, reason

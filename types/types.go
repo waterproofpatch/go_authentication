@@ -1,4 +1,4 @@
-package authentication
+package types
 
 import "github.com/dgrijalva/jwt-go"
 

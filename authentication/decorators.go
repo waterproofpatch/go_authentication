@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/waterproofpatch/go_authentication/types"
 )
 
 func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
@@ -20,7 +22,7 @@ func Authentication(inner func(http.ResponseWriter, *http.Request)) func(http.Re
 	}
 }
 
-func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *JWTData), allowUnverified bool) func(http.ResponseWriter, *http.Request) {
+func VerifiedOnly(inner func(http.ResponseWriter, *http.Request, *types.JWTData), allowUnverified bool) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s:%s\n", r.Method, r.RequestURI)
 

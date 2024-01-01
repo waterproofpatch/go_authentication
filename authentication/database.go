@@ -3,6 +3,7 @@ package authentication
 import (
 	"log"
 
+	"github.com/waterproofpatch/go_authentication/helpers"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -20,11 +21,11 @@ func resetDb(dropTables bool) {
 		db.Migrator().DropTable(&User{})
 	}
 	db.AutoMigrate(&User{})
-	hashedPassword, err := HashPassword(GetConfig().DefaultAdminPassword)
+	hashedPassword, err := HashPassword(helpers.GetConfig().DefaultAdminPassword)
 	if err != nil {
 		panic(err)
 	}
-	CreateUser(GetConfig().DefaultAdminEmail, GetConfig().DefaultUsername, hashedPassword, true, true, "")
+	CreateUser(helpers.GetConfig().DefaultAdminEmail, helpers.GetConfig().DefaultUsername, hashedPassword, true, true, "")
 }
 
 // getDb returns the database object

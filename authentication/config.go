@@ -1,27 +1,11 @@
 package authentication
 
-import "fmt"
+import (
+	"fmt"
 
-type Config struct {
-	RequireAccountVerification bool
-	DefaultAdminEmail          string
-	DefaultUsername            string
-	DefaultAdminPassword       string
-	Secret                     string
-	RefreshSecret              string
-	RegistrationCallback       RegistrationVerifyCallback
-	RegistrationCallbackUrl    string
-}
-
-var gCfg *Config
-
-// GetConfig returns the singleton Config object.
-func GetConfig() *Config {
-	if gCfg == nil {
-		gCfg = &Config{}
-	}
-	return gCfg
-}
+	"github.com/waterproofpatch/go_authentication/helpers"
+	"github.com/waterproofpatch/go_authentication/types"
+)
 
 func InitConfig(secret string,
 	refreshSecret string,
@@ -29,16 +13,16 @@ func InitConfig(secret string,
 	defaultUsername string,
 	defaultAdminPassword string,
 	requireAccountVerification bool,
-	registrationVerifyCallback RegistrationVerifyCallback,
+	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
 ) {
 	fmt.Printf("Initing authentication config...\n")
-	GetConfig().DefaultUsername = defaultUsername
-	GetConfig().RequireAccountVerification = requireAccountVerification
-	GetConfig().Secret = secret
-	GetConfig().RefreshSecret = refreshSecret
-	GetConfig().DefaultAdminEmail = defaultAdminEmail
-	GetConfig().DefaultAdminPassword = defaultAdminPassword
-	GetConfig().RegistrationCallback = registrationVerifyCallback
-	GetConfig().RegistrationCallbackUrl = registrationCallbackUrl
+	helpers.GetConfig().DefaultUsername = defaultUsername
+	helpers.GetConfig().RequireAccountVerification = requireAccountVerification
+	helpers.GetConfig().Secret = secret
+	helpers.GetConfig().RefreshSecret = refreshSecret
+	helpers.GetConfig().DefaultAdminEmail = defaultAdminEmail
+	helpers.GetConfig().DefaultAdminPassword = defaultAdminPassword
+	helpers.GetConfig().RegistrationCallback = registrationVerifyCallback
+	helpers.GetConfig().RegistrationCallbackUrl = registrationCallbackUrl
 }

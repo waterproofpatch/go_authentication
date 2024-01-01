@@ -8,12 +8,14 @@ import (
 	"regexp"
 
 	"github.com/gorilla/mux"
+	"github.com/waterproofpatch/go_authentication/helpers"
+	"github.com/waterproofpatch/go_authentication/types"
 )
 
 func WriteError(w http.ResponseWriter, message string, status int) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(&Error{ErrorMessage: message})
+	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message})
 }
 
 func getUserByEmail(email string) (*User, error) {
@@ -50,7 +52,7 @@ func isValidPassword(password string) bool {
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
-	var registerRequest RegisterRequest
+	var registerRequest types.RegisterRequest
 	err := json.NewDecoder(r.Body).Decode(&registerRequest)
 	if err != nil {
 		WriteError(w, "Invalid request!", http.StatusBadRequest)
@@ -84,8 +86,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 	_, err = CreateUser(registerRequest.Email,
 		registerRequest.Username,
 		hashedPassword,
-		!GetConfig().RequireAccountVerification, // isVerified
-		false,                                   // isAdmin
+		!helpers.GetConfig().RequireAccountVerification, // isVerified
+		false, // isAdmin
 		GeneratePseudorandomToken())
 	if err != nil {
 		WriteError(w, "Failed creating your account. This isn't your fault.", http.StatusInternalServerError)
@@ -95,7 +97,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 	// w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(200)
-	json.NewEncoder(w).Encode(&RegisterResponse{RequiresVerification: GetConfig().RequireAccountVerification})
+	json.NewEncoder(w).Encode(&types.RegisterResponse{RequiresVerification: helpers.GetConfig().RequireAccountVerification})
 }
 
 // parse the refresh token from the supplied cookie, and if valid, issue a new
@@ -172,7 +174,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	var loginRequest LoginRequest
+	var loginRequest types.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginRequest)
 	if err != nil {
 		WriteError(w, "Invalid request!", http.StatusBadRequest)
@@ -297,7 +299,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 	GetDb().Save(user)
 
 	// Redirect the user
-	http.Redirect(w, r, GetConfig().RegistrationCallbackUrl, http.StatusSeeOther)
+	http.Redirect(w, r, helpers.GetConfig().RegistrationCallbackUrl, http.StatusSeeOther)
 }
 
 func InitViews(router *mux.Router) {
