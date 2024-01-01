@@ -15,7 +15,7 @@ import (
 func WriteError(w http.ResponseWriter, message string, status int) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message})
+	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: 1})
 }
 
 func getUserByEmail(email string) (*User, error) {

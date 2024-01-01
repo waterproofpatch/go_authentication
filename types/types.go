@@ -4,6 +4,7 @@ import "github.com/dgrijalva/jwt-go"
 
 type Error struct {
 	ErrorMessage string `json:"error_message"`
+	Code         int    `json:"code"` // 1 for generic, 2 for not verified
 }
 
 type LoginRequest struct {
