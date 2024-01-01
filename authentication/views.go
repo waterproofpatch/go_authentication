@@ -203,6 +203,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 			// frontends can request the verification code to be resent
 			resend := r.URL.Query().Get("resend")
 			if resend == "true" {
+				// TODO if the user is already verified, tell them so
+				fmt.Printf("Resending authentication code!\n")
 				helpers.GetConfig().RegistrationCallback(user.Email, user.VerificationCode)
 				w.Header().Set("content-type", "application/json")
 				w.WriteHeader(200)
