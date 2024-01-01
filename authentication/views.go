@@ -200,6 +200,18 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 		// only verified users can log in
 		if !user.IsVerified {
+			// frontends can request the verification code to be resent
+			resend := r.URL.Query().Get("resend")
+			if resend == "true" {
+				helpers.GetConfig().RegistrationCallback(user.Email, user.VerificationCode)
+				w.Header().Set("content-type", "application/json")
+				w.WriteHeader(200)
+				json.NewEncoder(w).Encode(&types.RegisterResponse{
+					RequiresVerification: helpers.GetConfig().RequireAccountVerification,
+					AlreadyVerified:      false,
+				})
+				return
+			}
 			WriteErrorWithCode(w, "This account is not yet verified.", http.StatusUnauthorized, 2)
 			return
 		}
