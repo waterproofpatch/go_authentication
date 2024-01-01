@@ -208,10 +208,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 				helpers.GetConfig().RegistrationCallback(user.Email, user.VerificationCode)
 				w.Header().Set("content-type", "application/json")
 				w.WriteHeader(200)
-				json.NewEncoder(w).Encode(&types.RegisterResponse{
-					RequiresVerification: helpers.GetConfig().RequireAccountVerification,
-					AlreadyVerified:      false,
+				json, err := json.Marshal(struct {
+					Message string `json:"message"`
+				}{
+					"Code sent",
 				})
+				if err != nil {
+					log.Println(err)
+					WriteError(w, "Failed generating a new token", http.StatusInternalServerError)
+					return
+				}
+				w.Write(json)
 				return
 			}
 			WriteErrorWithCode(w, "This account is not yet verified.", http.StatusUnauthorized, 2)
