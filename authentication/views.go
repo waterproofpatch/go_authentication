@@ -18,6 +18,12 @@ func WriteError(w http.ResponseWriter, message string, status int) {
 	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: 1})
 }
 
+func WriteErrorWithCode(w http.ResponseWriter, message string, status int, code int) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: code})
+}
+
 func getUserByEmail(email string) (*User, error) {
 	db := GetDb()
 	var user *User
@@ -194,7 +200,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 		// only verified users can log in
 		if !user.IsVerified {
-			WriteError(w, "This account is not yet verified.", http.StatusUnauthorized)
+			WriteErrorWithCode(w, "This account is not yet verified.", http.StatusUnauthorized, 2)
 			return
 		}
 
