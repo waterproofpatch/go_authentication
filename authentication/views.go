@@ -94,10 +94,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(200)
-	json.NewEncoder(w).Encode(&types.RegisterResponse{RequiresVerification: helpers.GetConfig().RequireAccountVerification})
+	json.NewEncoder(w).Encode(&types.RegisterResponse{
+		RequiresVerification: helpers.GetConfig().RequireAccountVerification,
+		AlreadyVerified:      false,
+	})
 }
 
 // parse the refresh token from the supplied cookie, and if valid, issue a new
