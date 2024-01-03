@@ -1,11 +1,13 @@
 package authentication
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/mail"
+	"regexp"
 	"strings"
 	"time"
 
@@ -201,4 +203,49 @@ func IsAuthorized(w http.ResponseWriter, r *http.Request) (bool, *types.JWTData,
 	// it's enough to just be able to parse the claims
 	parsed, claims, errorString, reason := ParseClaims(w, r)
 	return parsed, claims, errorString, reason
+}
+
+func WriteError(w http.ResponseWriter, message string, status int) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: 1})
+}
+
+func WriteErrorWithCode(w http.ResponseWriter, message string, status int, code int) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: code})
+}
+
+func GetUserByEmail(email string) (*User, error) {
+	db := GetDb()
+	var user *User
+	return user, db.First(&user, "email = ?", email).Error
+}
+
+func GetUserById(id string) (*User, error) {
+	db := GetDb()
+	var user *User
+	return user, db.First(&user, "ID = ?", id).Error
+}
+
+func GetUserByVerificationCode(verificationCode string) (*User, error) {
+	db := GetDb()
+	var user *User
+	return user, db.First(&user, "verification_code = ?", verificationCode).Error
+}
+
+func GetUsers(users *[]User) error {
+	db := GetDb()
+	return db.Find(users).Error
+}
+
+func IsValidInput(input string) bool {
+	alphanumeric := regexp.MustCompile(`^[a-zA-Z0-9_]{3,16}$`)
+	return alphanumeric.MatchString(input)
+}
+
+func IsValidPassword(password string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{3,256}$`)
+	return re.MatchString(password)
 }

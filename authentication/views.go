@@ -5,57 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 
 	"github.com/gorilla/mux"
 	"github.com/waterproofpatch/go_authentication/helpers"
 	"github.com/waterproofpatch/go_authentication/types"
 )
-
-func WriteError(w http.ResponseWriter, message string, status int) {
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: 1})
-}
-
-func WriteErrorWithCode(w http.ResponseWriter, message string, status int, code int) {
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(&types.Error{ErrorMessage: message, Code: code})
-}
-
-func getUserByEmail(email string) (*User, error) {
-	db := GetDb()
-	var user *User
-	return user, db.First(&user, "email = ?", email).Error
-}
-
-func getUserById(id string) (*User, error) {
-	db := GetDb()
-	var user *User
-	return user, db.First(&user, "ID = ?", id).Error
-}
-
-func getUserByVerificationCode(verificationCode string) (*User, error) {
-	db := GetDb()
-	var user *User
-	return user, db.First(&user, "verification_code = ?", verificationCode).Error
-}
-
-func getUsers(users *[]User) error {
-	db := GetDb()
-	return db.Find(users).Error
-}
-
-func isValidInput(input string) bool {
-	alphanumeric := regexp.MustCompile(`^[a-zA-Z0-9_]{3,16}$`)
-	return alphanumeric.MatchString(input)
-}
-
-func isValidPassword(password string) bool {
-	re := regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{3,256}$`)
-	return re.MatchString(password)
-}
 
 func register(w http.ResponseWriter, r *http.Request) {
 	var registerRequest types.RegisterRequest
@@ -64,11 +18,11 @@ func register(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "Invalid request!", http.StatusBadRequest)
 		return
 	}
-	if !isValidPassword(registerRequest.Password) {
+	if !IsValidPassword(registerRequest.Password) {
 		WriteError(w, "Invalid password!", http.StatusBadRequest)
 		return
 	}
-	if !isValidInput(registerRequest.Username) {
+	if !IsValidInput(registerRequest.Username) {
 		WriteError(w, "Invalid username!", http.StatusBadRequest)
 		return
 	}
@@ -79,7 +33,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = getUserByEmail(registerRequest.Email)
+	_, err = GetUserByEmail(registerRequest.Email)
 	if err == nil {
 		WriteError(w, "Email taken", http.StatusBadRequest)
 		return
@@ -124,7 +78,7 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var user *User
-	user, err = getUserByEmail(jwt.Email)
+	user, err = GetUserByEmail(jwt.Email)
 	if err != nil {
 		WriteError(w, "No user for email from the refresh token.", http.StatusUnauthorized)
 		return
@@ -190,7 +144,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user *User
-	user, err = getUserByEmail(loginRequest.Email)
+	user, err = GetUserByEmail(loginRequest.Email)
 	if err != nil {
 		WriteError(w, "Invalid credentials!", http.StatusUnauthorized)
 		return
@@ -264,7 +218,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 		switch option {
 		case "approve":
 			verificationCode := r.URL.Query().Get("verificationCode")
-			user, err := getUserByVerificationCode(verificationCode)
+			user, err := GetUserByVerificationCode(verificationCode)
 			if err != nil {
 				WriteError(w, "Invalid verification code.", http.StatusBadRequest)
 				return
@@ -281,7 +235,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 				WriteError(w, "Invalid user ID", http.StatusBadRequest)
 				return
 			}
-			user, err := getUserById(id)
+			user, err := GetUserById(id)
 			if err != nil {
 				WriteError(w, "Unable to find user", http.StatusBadRequest)
 				return
@@ -298,7 +252,7 @@ func users(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var users []User
-	err := getUsers(&users)
+	err := GetUsers(&users)
 	if err != nil {
 		WriteError(w, "Failed obtaining users", http.StatusBadRequest)
 		return
@@ -314,7 +268,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	email := r.URL.Query().Get("email")
 
-	user, err := getUserByVerificationCode(code)
+	user, err := GetUserByVerificationCode(code)
 
 	if user.Email != email || err != nil {
 		WriteError(w, "Invalid code.", http.StatusBadRequest)
