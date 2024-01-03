@@ -7,6 +7,9 @@ type Error struct {
 	Code         int    `json:"errorCode"`
 }
 
+type ResetRequest struct {
+	Email string `json:"email"`
+}
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -34,4 +37,9 @@ type JWTData struct {
 }
 
 // callers provide an implementation to be called when a user is registered
+// arg1: email, arg2: verificationCode
 type RegistrationVerifyCallback func(string, string) error
+
+// callers provide an implementation to be called when a user is resetting their password
+// arg1: email, arg2: reset code
+type ResetPasswordCallback func(string, string) error

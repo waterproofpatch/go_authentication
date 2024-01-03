@@ -13,6 +13,7 @@ func InitConfig(secret string,
 	defaultUsername string,
 	defaultAdminPassword string,
 	requireAccountVerification bool,
+	resetPasswordCallback types.ResetPasswordCallback,
 	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
 ) {
@@ -23,6 +24,7 @@ func InitConfig(secret string,
 	helpers.GetConfig().RefreshSecret = refreshSecret
 	helpers.GetConfig().DefaultAdminEmail = defaultAdminEmail
 	helpers.GetConfig().DefaultAdminPassword = defaultAdminPassword
+	helpers.GetConfig().ResetPasswordCallback = resetPasswordCallback
 	helpers.GetConfig().RegistrationCallback = registrationVerifyCallback
 	helpers.GetConfig().RegistrationCallbackUrl = registrationCallbackUrl
 }

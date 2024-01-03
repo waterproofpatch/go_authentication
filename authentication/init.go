@@ -14,6 +14,7 @@ func Init(secret string,
 	dbUrl string,
 	dropTables bool,
 	requireAccountVerification bool,
+	resetPasswordCallback types.ResetPasswordCallback,
 	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
 ) {
@@ -23,6 +24,7 @@ func Init(secret string,
 		defaultAdminUsername,
 		defaultAdminPassword,
 		requireAccountVerification,
+		resetPasswordCallback,
 		registrationVerifyCallback,
 		registrationCallbackUrl)
 	InitViews(router)

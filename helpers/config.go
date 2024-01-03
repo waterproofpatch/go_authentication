@@ -9,6 +9,7 @@ type Config struct {
 	DefaultAdminPassword       string
 	Secret                     string
 	RefreshSecret              string
+	ResetPasswordCallback      types.ResetPasswordCallback
 	RegistrationCallback       types.RegistrationVerifyCallback
 	RegistrationCallbackUrl    string
 }

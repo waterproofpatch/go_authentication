@@ -135,6 +135,34 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func reset(w http.ResponseWriter, r *http.Request) {
+	var resetRequest types.ResetRequest
+	err := json.NewDecoder(r.Body).Decode(&resetRequest)
+	if err != nil {
+		WriteError(w, "Invalid request!", http.StatusBadRequest)
+		return
+	}
+	var user *User
+	user, err = GetUserByEmail(resetRequest.Email)
+	if err != nil {
+		WriteError(w, "No account with that email exists", http.StatusUnauthorized)
+		return
+	}
+
+	// 1. set a reset code on their account
+	// 2. send an email with the reset code
+	// 3. later on, if we get either a valid login from this user or a valid
+	// performPasswordReset request with the supplied code, remove the reset
+	// code from their account
+
+	// overwrite previously saved code
+	user.PasswordResetCode = GeneratePseudorandomToken()
+
+	// call app to send the reset email
+	helpers.GetConfig().ResetPasswordCallback(user.Email, user.PasswordResetCode)
+	return
+}
+
 func login(w http.ResponseWriter, r *http.Request) {
 	var loginRequest types.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginRequest)
@@ -288,6 +316,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 
 func InitViews(router *mux.Router) {
 	router.HandleFunc("/api/verify", verify).Methods("GET", "OPTIONS")
+	router.HandleFunc("/api/reset", reset).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/login", login).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/logout", logout).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/refresh", refresh).Methods("GET", "OPTIONS")
