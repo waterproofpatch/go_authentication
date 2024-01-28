@@ -34,6 +34,21 @@ func IsValidEmail(email string) bool {
 	return err == nil
 }
 
+func UpdateUserPassword(user *User, newPasswordHash string) error {
+	db := GetDb()
+	user.Password = newPasswordHash
+	// empty string means that no reset was requested
+	user.PasswordResetCode = ""
+
+	log.Printf("Updating password for user email=%s\n", user.Email)
+
+	err := db.Save(&user).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // create a new user in a database.
 func CreateUser(email string, username string, hashedPassword string, isVerified bool, isAdmin bool, verificationCode string) (*User, error) {
 	db := GetDb()
@@ -227,6 +242,12 @@ func GetUserById(id string) (*User, error) {
 	db := GetDb()
 	var user *User
 	return user, db.First(&user, "ID = ?", id).Error
+}
+
+func GetUserByResetCode(resetCode string) (*User, error) {
+	db := GetDb()
+	var user *User
+	return user, db.First(&user, "password_reset_code = ?", resetCode).Error
 }
 
 func GetUserByVerificationCode(verificationCode string) (*User, error) {

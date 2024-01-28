@@ -147,6 +147,27 @@ func reset(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		fmt.Printf("User supplied resetCode=%v", completeResetRequest.ResetCode)
+		var user *User
+		user, err = GetUserByResetCode(completeResetRequest.ResetCode)
+		if err != nil {
+			WriteError(w, "Invalid reset code.", http.StatusUnauthorized)
+			return
+		}
+		if !user.IsVerified {
+			WriteError(w, "You have not verified your account yet. Please check your email for a link to verify your account.",
+				http.StatusUnauthorized)
+			return
+		}
+		if completeResetRequest.Password != completeResetRequest.PasswordConfirmation {
+			WriteError(w, "Passwords do not match.", http.StatusBadRequest)
+			return
+		}
+		hashedPassword, err := HashPassword(completeResetRequest.Password)
+		if err != nil {
+			WriteError(w, "Failed hashing password", http.StatusInternalServerError)
+			return
+		}
+		UpdateUserPassword(user, hashedPassword)
 		return
 	}
 	var resetRequest types.ResetRequest
@@ -161,6 +182,11 @@ func reset(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, "No account with that email exists", http.StatusUnauthorized)
 		return
 	}
+	if !user.IsVerified {
+		WriteError(w, "You have not verified your account yet. Please check your email for a link to verify your account.",
+			http.StatusUnauthorized)
+		return
+	}
 
 	// 1. set a reset code on their account
 	// 2. send an email with the reset code
@@ -170,6 +196,7 @@ func reset(w http.ResponseWriter, r *http.Request) {
 
 	// overwrite previously saved code
 	user.PasswordResetCode = GeneratePseudorandomToken()
+	GetDb().Save(user)
 
 	// call app to send the reset email
 	helpers.GetConfig().ResetPasswordCallback(user.Email, user.PasswordResetCode)
