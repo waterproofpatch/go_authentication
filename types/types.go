@@ -10,6 +10,11 @@ type Error struct {
 type ResetRequest struct {
 	Email string `json:"email"`
 }
+type CompleteResetRequest struct {
+	Password             string `json:"password"`
+	PasswordConfirmation string `json:"passwordConfirmation"`
+	ResetCode            string `json:"resetCode"`
+}
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

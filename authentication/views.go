@@ -136,6 +136,19 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func reset(w http.ResponseWriter, r *http.Request) {
+	doComplete := r.URL.Query().Get("doComplete")
+	if doComplete == "true" {
+
+		fmt.Printf("Completing request...\n")
+		var completeResetRequest types.CompleteResetRequest
+		err := json.NewDecoder(r.Body).Decode(&completeResetRequest)
+		if err != nil {
+			WriteError(w, "Invalid request!", http.StatusBadRequest)
+			return
+		}
+		fmt.Printf("User supplied resetCode=%v", completeResetRequest.ResetCode)
+		return
+	}
 	var resetRequest types.ResetRequest
 	err := json.NewDecoder(r.Body).Decode(&resetRequest)
 	if err != nil {
