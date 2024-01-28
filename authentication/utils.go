@@ -247,6 +247,7 @@ func GetUserById(id string) (*User, error) {
 func GetUserByResetCode(resetCode string) (*User, error) {
 	db := GetDb()
 	var user *User
+
 	return user, db.First(&user, "password_reset_code = ?", resetCode).Error
 }
 

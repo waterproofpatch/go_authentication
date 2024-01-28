@@ -148,14 +148,20 @@ func reset(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("User supplied resetCode=%v", completeResetRequest.ResetCode)
 		var user *User
-		user, err = GetUserByResetCode(completeResetRequest.ResetCode)
+		user, err = GetUserByEmail(completeResetRequest.Email)
 		if err != nil {
-			WriteError(w, "Invalid reset code.", http.StatusUnauthorized)
+			WriteError(w, "Invalid email code.", http.StatusUnauthorized)
 			return
 		}
 		if !user.IsVerified {
 			WriteError(w, "You have not verified your account yet. Please check your email for a link to verify your account.",
 				http.StatusUnauthorized)
+			return
+		}
+		// disallow 0 length reset codes because they would match users who haven't actually requested a code
+		// we know that users who have requested a code get a long one.
+		if len(completeResetRequest.ResetCode) == 0 || !DoPasswordsMatch(user.PasswordResetCode, completeResetRequest.ResetCode) {
+			WriteError(w, "Invalid reset code.", http.StatusUnauthorized)
 			return
 		}
 		if completeResetRequest.Password != completeResetRequest.PasswordConfirmation {
@@ -194,12 +200,18 @@ func reset(w http.ResponseWriter, r *http.Request) {
 	// performPasswordReset request with the supplied code, remove the reset
 	// code from their account
 
-	// overwrite previously saved code
-	user.PasswordResetCode = GeneratePseudorandomToken()
+	// overwrite previously saved code - hash it, because if recovered from a db dump,
+	// can be used to take control of an account
+	resetCodePlain := GeneratePseudorandomToken()
+	user.PasswordResetCode, err = HashPassword(resetCodePlain)
+	if err != nil {
+		WriteError(w, "Failed hashing token...", http.StatusInternalServerError)
+		return
+	}
 	GetDb().Save(user)
 
 	// call app to send the reset email
-	helpers.GetConfig().ResetPasswordCallback(user.Email, user.PasswordResetCode)
+	helpers.GetConfig().ResetPasswordCallback(user.Email, resetCodePlain)
 	return
 }
 

@@ -11,6 +11,7 @@ type ResetRequest struct {
 	Email string `json:"email"`
 }
 type CompleteResetRequest struct {
+	Email                string `json:"email"`
 	Password             string `json:"password"`
 	PasswordConfirmation string `json:"passwordConfirmation"`
 	ResetCode            string `json:"resetCode"`
