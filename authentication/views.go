@@ -135,10 +135,13 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// function called for two parts of this workflow - requesting an initial reset
+// code to be sent to the email and using that reset code to complete the
+// workflow by actually resetting the password
 func reset(w http.ResponseWriter, r *http.Request) {
+	// check for the second part of this two part workflow
 	doComplete := r.URL.Query().Get("doComplete")
 	if doComplete == "true" {
-
 		fmt.Printf("Completing request...\n")
 		var completeResetRequest types.CompleteResetRequest
 		err := json.NewDecoder(r.Body).Decode(&completeResetRequest)
@@ -176,6 +179,8 @@ func reset(w http.ResponseWriter, r *http.Request) {
 		UpdateUserPassword(user, hashedPassword)
 		return
 	}
+	// if we get here, we're at the first part - requesting the reset code
+	// be sent to the email requested.
 	var resetRequest types.ResetRequest
 	err := json.NewDecoder(r.Body).Decode(&resetRequest)
 	if err != nil {
@@ -279,6 +284,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// remove any reset code that might have been previously set - maybe the user remembered their credentials?
+		user.PasswordResetCode = ""
+		GetDb().Save(user)
 		refreshCookie := MakeRefreshTokenCookie(refreshTokenString)
 		http.SetCookie(w, &refreshCookie)
 		w.Write(json)
