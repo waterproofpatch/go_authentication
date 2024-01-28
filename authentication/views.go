@@ -150,7 +150,7 @@ func reset(w http.ResponseWriter, r *http.Request) {
 		var user *User
 		user, err = GetUserByEmail(completeResetRequest.Email)
 		if err != nil {
-			WriteError(w, "Invalid email code.", http.StatusUnauthorized)
+			WriteError(w, "Invalid email.", http.StatusUnauthorized)
 			return
 		}
 		if !user.IsVerified {
