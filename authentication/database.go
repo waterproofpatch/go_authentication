@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/waterproofpatch/go_authentication/helpers"
@@ -39,6 +40,7 @@ func GetDb() *gorm.DB {
 func InitDb(dbUrl string, dropTables bool) {
 	database, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
 	if err != nil {
+		fmt.Printf("failed to connect database: %s", err)
 		panic("failed to connect database")
 	}
 
