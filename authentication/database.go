@@ -3,9 +3,13 @@ package authentication
 import (
 	"fmt"
 	"log"
+	"strings"
+	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlserver"
 
 	"github.com/waterproofpatch/go_authentication/helpers"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -38,13 +42,45 @@ func GetDb() *gorm.DB {
 }
 
 func InitDb(dbUrl string, dropTables bool) {
-	database, err := gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
+	var database *gorm.DB
+	var err error
+
+	if strings.Contains(dbUrl, "postgres") {
+		fmt.Println("Using postgres server")
+		database, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
+	} else {
+		fmt.Println("Using sql server")
+		for i := 0; i < 5; i++ {
+			err, database = connectToSqlDb(dbUrl)
+			if err == nil {
+				fmt.Println("Done retrying connection!")
+				break
+			}
+			// wait 2 seconds
+			fmt.Println("Retrying connection...")
+			time.Sleep(2 * time.Second)
+		}
+	}
+
 	if err != nil {
 		fmt.Printf("failed to connect database: %s", err)
 		panic("failed to connect database")
 	}
 
-	// Read
 	gDb = database
 	resetDb(dropTables == true)
+}
+
+// sometimes this fails the first time if the db is suspended, so we should retry...
+func connectToSqlDb(connString string) (error, *gorm.DB) {
+	var db *gorm.DB
+	var err error
+
+	db, err = gorm.Open(sqlserver.Open(connString), &gorm.Config{})
+	if err != nil {
+		fmt.Println("Error creating connection pool: ", err.Error())
+		return err, nil
+	}
+	fmt.Printf("Connected!")
+	return nil, db
 }

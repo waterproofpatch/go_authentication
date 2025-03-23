@@ -1,6 +1,8 @@
 package authentication
 
 import (
+	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/waterproofpatch/go_authentication/types"
 )
@@ -18,6 +20,7 @@ func Init(secret string,
 	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
 ) {
+	fmt.Println("Initializing go_authentication...")
 	InitConfig(secret,
 		refreshSecret,
 		defaultAdminEmail,
