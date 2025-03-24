@@ -9,10 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azsecrets"
 )
 
-func GetSecret(secretName string) (string, error) {
+func GetSecret(secretName string, kvName string) (string, error) {
 	fmt.Println("Getting secret...")
 	// mySecretValue := "secretValue"
-	vaultURI := fmt.Sprintf("https://%s.vault.azure.net/", "plantmindrakskv")
+	vaultURI := fmt.Sprintf("https://%s.vault.azure.net/", kvName)
 
 	// Create a credential using the NewDefaultAzureCredential type.
 	cred, err := azidentity.NewDefaultAzureCredential(nil)

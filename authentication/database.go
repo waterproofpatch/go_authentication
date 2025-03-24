@@ -47,7 +47,7 @@ func InitDb(dbUrl string, dropTables bool, isDebug bool) {
 
 	if !isDebug {
 		fmt.Println("Getting secret...")
-		dbUrl, err = GetSecret("sqlDbPassword")
+		dbUrl, err = GetSecret("sqlDbPassword", "plantmindrrbackv")
 		if err != nil {
 			fmt.Println("Error getting secret: ", err)
 			panic("Error getting secret")
