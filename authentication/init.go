@@ -19,6 +19,7 @@ func Init(secret string,
 	resetPasswordCallback types.ResetPasswordCallback,
 	registrationVerifyCallback types.RegistrationVerifyCallback,
 	registrationCallbackUrl string,
+	isDebug bool,
 ) {
 	fmt.Println("Initializing go_authentication...")
 	InitConfig(secret,
@@ -31,5 +32,5 @@ func Init(secret string,
 		registrationVerifyCallback,
 		registrationCallbackUrl)
 	InitViews(router)
-	InitDb(dbUrl, dropTables)
+	InitDb(dbUrl, dropTables, isDebug)
 }
