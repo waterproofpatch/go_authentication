@@ -45,30 +45,19 @@ func InitDb(dbUrl string, dropTables bool, isDebug bool) {
 	var database *gorm.DB
 	var err error
 
-	if !isDebug {
-		fmt.Println("Getting secret...")
-		dbUrl, err = GetSecret("sqlDbPassword", "plantmindrrbackv")
-		if err != nil {
-			fmt.Println("Error getting secret: ", err)
-			panic("Error getting secret")
-		}
-		fmt.Println("Got secret:", dbUrl)
+	if strings.Contains(dbUrl, "postgres") {
+		fmt.Println("Using postgres server")
+		database, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
 	} else {
-		fmt.Println("Using debug mode...")
-		if strings.Contains(dbUrl, "postgres") {
-			fmt.Println("Using postgres server")
-			database, err = gorm.Open(postgres.Open(dbUrl), &gorm.Config{})
-		} else {
-			fmt.Println("Using sql server")
-			for i := 0; i < 5; i++ {
-				err, database = connectToSqlDb(dbUrl)
-				if err == nil {
-					fmt.Println("Done retrying connection!")
-					break
-				}
-				fmt.Println("Retrying connection...")
-				time.Sleep(2 * time.Second)
+		fmt.Println("Using sql server")
+		for i := 0; i < 5; i++ {
+			err, database = connectToSqlDb(dbUrl)
+			if err == nil {
+				fmt.Println("Done retrying connection!")
+				break
 			}
+			fmt.Println("Retrying connection...")
+			time.Sleep(2 * time.Second)
 		}
 	}
 
